@@ -13,6 +13,7 @@ class ViewController: UIViewController {
     let allQuestions = QuestionBank()
     var pickedAnswer : Bool = false
     var questionNumber : Int = 0
+    var score : Int = 0
     
     @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet weak var scoreLabel: UILabel!
@@ -22,8 +23,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let firstQuestion = allQuestions.list[0]
-        questionLabel.text = firstQuestion.questionText
+         updateUI()
     }
 
 
@@ -35,46 +35,55 @@ class ViewController: UIViewController {
             pickedAnswer = false
         }
         checkAnswer()
+        
+        questionNumber = questionNumber + 1
+        updateUI()
     }
     
     
     func updateUI() {
-      
+        progressBar.frame.size.width = (view.frame.size.width / 13) * CGFloat(questionNumber)
+        
+        progressLabel.text = String(questionNumber) + "/13"
+        scoreLabel.text = "Score: " + String(score)
+        
+        nextQuestion()
     }
     
 
     func nextQuestion() {
-        questionLabel.text = allQuestions.list[questionNumber].questionText
+        if questionNumber <= 12 {
+            questionLabel.text = allQuestions.list[questionNumber].questionText
+        }
+        else {
+            let alert = UIAlertController(title: "Congratulations !", message: "You've finished all the questions, do you want to start over ?", preferredStyle: .alert)
+            
+            let restartAction = UIAlertAction(title: "Restart", style: .default) { (action) in
+                self.startOver()
+            }
+            
+            alert.addAction(restartAction)
+            present(alert, animated: true, completion: nil)
+        }
     }
     
     
     func checkAnswer() {
-        if(allQuestions.list[questionNumber].answer == pickedAnswer){
-            
-            if(questionNumber < allQuestions.list.count - 1){
-                questionNumber += 1
-                nextQuestion()
-            }
-            else{
-                let alert = UIAlertController(title: "Congratulations !", message: "You've finished all the questions, do you want to start over ?", preferredStyle: .alert)
-                
-                let restartAction = UIAlertAction(title: "Restart", style: .default) { (action) in
-                    self.startOver()
-                }
-                
-                alert.addAction(restartAction)
-                present(alert, animated: true, completion: nil)
-            }
-            
+        let correctAnswer = allQuestions.list[questionNumber].answer
+        if correctAnswer == pickedAnswer{
+            score += 1
+            ProgressHUD.showSuccess("Correct")
+        }
+        else{
+            ProgressHUD.showError("Wrong!")
         }
     }
     
     
     func startOver() {
         questionNumber = 0
-        nextQuestion()
+        score = 0
+        
+        updateUI()
     }
-    
-
-    
 }
